@@ -1,0 +1,9 @@
+<101>]Class$(230,150)!完成品!!-製品コード%-製造日%!;
+<102>]Class$(450,80)!主要部品!!-部品コード%-数量%!;
+<103>]Class$(450,250)!組立部品!!-構成ID%-員数%!;
+<104>]Class$(630,250)!原材料!!-材料コード%!;
+<105>]Class$(630,80)!サプライヤー!!-サプライヤーID%-会社名%!;
+<201>]ClassRelationLink$<102>!<101>!SimpleRelation!!Solid!None!1..*!!!None!1!!;
+<202>]ClassRelationLink$<103>!<101>!Aggregation!!Solid!WhiteDiamond!0..1!!!None!1..*!!;
+<203>]ClassRelationLink$<104>!<103>!SimpleRelation!!Solid!None!0..*!!!None!1..*!!;
+<204>]ClassRelationLink$<105>!<102>!SimpleRelation!!Solid!None!1!!!None!0..*!!;
