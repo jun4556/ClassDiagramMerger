@@ -9,44 +9,33 @@ import model.UmlClass;
 import model.UmlDiagram;
 
 /**
- * 2つのUmlDiagramを比較し、対応するUmlClass要素をマッチングさせるクラス。
+ * 2つのUmlDiagramを比較し、対応するUmlClass要素をマッチングさせるクラス。（最終版）
  */
 public class Matcher {
 
-    // 2つのクラスが「同じ」と見なされるための類似度のしきい値
-    private static final double SIMILARITY_THRESHOLD = 0.5;
+    // しきい値は0.2を維持
+    private static final double SIMILARITY_THRESHOLD = 0.2;
 
-    /**
-     * 2つのダイアグラム間でクラスのマッチングを行います。
-     * @param diagramA 比較元となるダイアグラム
-     * @param diagramB 比較先となるダイアグラム
-     * @return マッチしたUmlClassのペアを格納したMap
-     */
     public Map<UmlClass, UmlClass> match(UmlDiagram diagramA, UmlDiagram diagramB) {
-        // 結果を格納するマップ
         Map<UmlClass, UmlClass> matches = new HashMap<>();
-        
-        // diagramBの中で、まだマッチしていないクラスの集合
         Set<UmlClass> unmatchedB = new HashSet<>(diagramB.getClasses());
-        
-        // --- ヒューリスティックマッチング ---
-        // IDでの比較は行わず、すべてのクラスに対して類似度ベースのマッチングを行う
+
         for (UmlClass classA : diagramA.getClasses()) {
             UmlClass bestMatch = null;
             double highestScore = 0.0;
 
-            // マッチしていないdiagramBの全クラスと比較
             for (UmlClass classB : unmatchedB) {
-                // 1. 名前の類似度を計算 (0.0 ~ 1.0に正規化)
+                // 1. 名前の類似度
                 int maxLen = Math.max(classA.name.length(), classB.name.length());
                 double nameDistance = UmlClass.calculateLevenshteinDistance(classA.name, classB.name);
                 double nameSimilarity = (maxLen > 0) ? (1.0 - (nameDistance / maxLen)) : 1.0;
                 
-                // 2. 内容の類似度を計算 (Jaccard係数)
-                double contentSimilarity = classA.calculateJaccardSimilarity(classB);
+                // 2. ★★★ 改良点 ★★★
+                //    双方向で属性の類似度を計算する
+                double contentSimilarity = calculateSymmetricalContentSimilarity(classA, classB);
 
-                // 3. 総合スコアを計算 (重み付け)
-                double totalScore = 0.6 * nameSimilarity + 0.4 * contentSimilarity;
+                // 3. 総合スコア
+                double totalScore = 0.5 * nameSimilarity + 0.5 * contentSimilarity;
 
                 if (totalScore > highestScore) {
                     highestScore = totalScore;
@@ -54,13 +43,50 @@ public class Matcher {
                 }
             }
             
-            // 最もスコアが高かったペアがしきい値を超えていれば、マッチと見なす
             if (bestMatch != null && highestScore > SIMILARITY_THRESHOLD) {
                 matches.put(classA, bestMatch);
-                unmatchedB.remove(bestMatch); // マッチしたので集合から削除
+                unmatchedB.remove(bestMatch);
             }
         }
         
         return matches;
+    }
+    
+    /**
+     * A->B と B->A の両方から属性類似度を計算し、その平均を返します。
+     */
+    private double calculateSymmetricalContentSimilarity(UmlClass classA, UmlClass classB) {
+        double scoreAB = calculateDirectedContentSimilarity(classA, classB); // AからBを見る
+        double scoreBA = calculateDirectedContentSimilarity(classB, classA); // BからAを見る
+        
+        return (scoreAB + scoreBA) / 2.0; // 両方の平均を取る
+    }
+
+    /**
+     * Aの各属性について、B内で最も似ている属性を見つけ、その類似度の平均を返します。(片方向)
+     */
+    private double calculateDirectedContentSimilarity(UmlClass classA, UmlClass classB) {
+        Set<String> attrsA = classA.attributes;
+        Set<String> attrsB = classB.attributes;
+
+        if (attrsA.isEmpty() && attrsB.isEmpty()) return 1.0;
+        if (attrsA.isEmpty() || attrsB.isEmpty()) return 0.0;
+
+        double totalBestMatchScore = 0.0;
+        for (String attrA : attrsA) {
+            double highestSimilarityForAttrA = 0.0;
+            for (String attrB : attrsB) {
+                int maxLen = Math.max(attrA.length(), attrB.length());
+                double distance = UmlClass.calculateLevenshteinDistance(attrA, attrB);
+                double similarity = (maxLen > 0) ? (1.0 - (distance / maxLen)) : 1.0;
+                
+                if (similarity > highestSimilarityForAttrA) {
+                    highestSimilarityForAttrA = similarity;
+                }
+            }
+            totalBestMatchScore += highestSimilarityForAttrA;
+        }
+
+        return totalBestMatchScore / attrsA.size();
     }
 }
