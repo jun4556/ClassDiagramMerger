@@ -24,14 +24,14 @@ public class DiffEngine {
     public List<Diff> diff(UmlDiagram baseDiagram, UmlDiagram versionDiagram, Map<UmlClass, UmlClass> matches) {
         List<Diff> diffs = new ArrayList<>();
 
-        // --- 1. クラスの変更、削除を検出 ---
+        // --- 1. クラスの変更を検出し、削除は無視する ---
         for (UmlClass baseClass : baseDiagram.getClasses()) {
             UmlClass versionClass = matches.get(baseClass);
 
             if (versionClass == null) {
-                // マッチするクラスがなければ削除されたと判断
-                diffs.add(new Diff(Diff.ChangeType.DELETE, Diff.ElementType.CLASS, baseClass.id, 
-                    "Class '" + baseClass.name + "' deleted."));
+                // ★★★ 変更点 ★★★
+                // マッチするクラスがなくても削除とは見なさず、何もしない（クラスを保持する）
+                continue; 
             } else {
                 // マッチするクラスがあれば、内容の変更をチェック
                 // 名前の変更

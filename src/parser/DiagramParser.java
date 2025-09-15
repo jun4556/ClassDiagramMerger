@@ -44,12 +44,16 @@ public class DiagramParser {
                 
                 UmlClass newClass = new UmlClass(id, name);
                 
-                // 属性文字列があればパースして追加
-                if (!attrsStr.isEmpty()) {
-                    String[] attributes = attrsStr.replace("-", "").split("%");
+                // 【修正箇所】属性文字列をより堅牢にパース
+                if (attrsStr != null && !attrsStr.isEmpty()) {
+                    // 不要な "-" や "!" を除去
+                    String cleanedAttrs = attrsStr.replace("-", "").replace("!", "");
+                    String[] attributes = cleanedAttrs.split("%");
                     for (String attr : attributes) {
-                        if (!attr.trim().isEmpty()) {
-                            newClass.attributes.add(attr.trim());
+                        String trimmedAttr = attr.trim();
+                        // 空の属性は追加しない
+                        if (!trimmedAttr.isEmpty()) {
+                            newClass.attributes.add(trimmedAttr);
                         }
                     }
                 }
@@ -57,7 +61,6 @@ public class DiagramParser {
                 continue; // クラス行だったので次の行へ
             }
             
-            // ★ここからが追加部分★
             // クラス行でなければ、関係行のマッチングを試みる
             Matcher relationMatcher = RELATION_PATTERN.matcher(line);
             if (relationMatcher.find()) {

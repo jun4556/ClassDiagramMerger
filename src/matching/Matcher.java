@@ -28,25 +28,10 @@ public class Matcher {
         
         // diagramBの中で、まだマッチしていないクラスの集合
         Set<UmlClass> unmatchedB = new HashSet<>(diagramB.getClasses());
-
-        // --- Step 1: IDベースのマッチング ---
-        // 最も確実な方法から先に行う
-        for (UmlClass classA : diagramA.getClasses()) {
-            UmlClass classB = diagramB.getClassById(classA.id);
-            if (classB != null) {
-                matches.put(classA, classB);
-                unmatchedB.remove(classB); // マッチしたので集合から削除
-            }
-        }
         
-        // --- Step 2: ヒューリスティックマッチング ---
-        // IDでマッチしなかった残りのクラスに対して、類似度ベースのマッチングを行う
+        // --- ヒューリスティックマッチング ---
+        // IDでの比較は行わず、すべてのクラスに対して類似度ベースのマッチングを行う
         for (UmlClass classA : diagramA.getClasses()) {
-            // 既にIDでマッチ済みのクラスはスキップ
-            if (matches.containsKey(classA)) {
-                continue;
-            }
-
             UmlClass bestMatch = null;
             double highestScore = 0.0;
 
