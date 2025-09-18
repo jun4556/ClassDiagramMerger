@@ -1,6 +1,10 @@
-<6>]Class$(229,112)!プロダクト!!-製品型番%-製造国%!;
-<7>]Class$(445,111)!部品!!-部品型番%!;
-<8>]Class$(448,234)!サブ部品!!-サブ部品型番%-必要数%-予備数%!;
-<9>]Class$(444,404)!外部委託品!!!;
-<20>]Class$(628,255)!検査工程!!-検査項目%!;
-<11>]ClassRelationLink$<7>!<6>!SimpleRelation!!Solid!None!０..*!!!None!1!!;
+<21>]Class$(230,110)!車両!!-識別番号%-車体色%!;
+<22>]Class$(450,110)!原動機!!-識別番号%-数量%!;
+<23>]Class$(450,230)!車輪!!-識別番号%-数量%!;
+<24>]Class$(450,400)!サプライヤー!!!;
+<25>]Class$(630,250)!リム!!-識別番号%!;
+<26>]Class$(200,100)!自動車!!-モデルID%!;
+<31>]ClassRelationLink$<22>!<21>!SimpleRelation!!Solid!None!0..*!!!None!1!!;
+<32>]ClassRelationLink$<23>!<21>!SimpleRelation!!Solid!None!0..*!!!None!1!!;
+<33>]ClassRelationLink$<24>!<23>!SimpleRelation!!Solid!None!None!!!None!None!!;
+<34>]ClassRelationLink$<25>!<23>!SimpleRelation!!Solid!None!1..*!!!None!1!!;

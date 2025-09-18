@@ -27,10 +27,8 @@ public class Merger {
         UmlDiagram mergedDiagram = createDeepCopy(baseDiagram);
 
         for (Diff diff : diffs) {
-            // 対象となるクラスをマージ後のダイアグラムから取得
             UmlClass targetClass = mergedDiagram.getClassById(diff.elementId);
             
-            // --- クラスに関する差分処理 ---
             if (diff.elementType == ElementType.CLASS) {
                 if (diff.changeType == ChangeType.ADD) {
                     UmlClass classToAdd = versionADiagram.getClassById(diff.elementId);
@@ -39,19 +37,15 @@ public class Merger {
                         System.out.println("Applied ADD: Added class '" + classToAdd.name + "'");
                     }
                 } else if (diff.changeType == ChangeType.CHANGE) {
-                    // ★★★ ここからが新しいロジック ★★★
                     if (targetClass != null) {
-                        // descriptionから新しいクラス名を取得
                         String newName = diff.description.split("'")[3];
                         System.out.println("Applied CHANGE: Renamed class '" + targetClass.name + "' to '" + newName + "'");
                         targetClass.name = newName;
                     }
                 }
             } 
-            // --- 属性に関する差分処理 ---
             else if (diff.elementType == ElementType.ATTRIBUTE) {
                 if (targetClass != null) {
-                    // descriptionから属性名を取得
                     String attributeName = diff.description.split("'")[1];
 
                     if (diff.changeType == ChangeType.ADD) {
@@ -70,7 +64,9 @@ public class Merger {
 
     // クラスのディープコピーを作成するヘルパーメソッド
     private UmlClass createClassCopy(UmlClass original) {
-        UmlClass copy = new UmlClass(original.id, original.name);
+        // ★★★ ここを修正 ★★★
+        // 元のクラスの座標(x, y)も引き継いで新しいUmlClassオブジェクトを生成する
+        UmlClass copy = new UmlClass(original.id, original.name, original.x, original.y);
         for (String attr : original.attributes) {
             copy.attributes.add(attr);
         }
