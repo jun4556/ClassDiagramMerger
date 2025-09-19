@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import matching.Matcher; // ★インポート追加
-import model.UmlClass; // ★インポート追加
-import model.UmlDiagram; // ★インポート追加
+import matching.Matcher;
+import model.UmlClass;
+import model.UmlDiagram;
 
 /**
  * 2つの差分リスト（例：base vs A と base vs B）を比較し、
@@ -24,7 +24,7 @@ public class ConflictDetector {
      * @return 競合内容を説明する文字列のリスト
      */
     public List<String> detectConflicts(List<Diff> diffsA, List<Diff> diffsB) {
-        
+
         List<String> conflicts = new ArrayList<>();
         System.out.println("\n--- Running 3-Way Conflict Detector ---");
 
@@ -35,7 +35,7 @@ public class ConflictDetector {
 
         for (Diff diffA : diffsA) {
             if (diffsBMap.containsKey(diffA.elementId)) {
-                
+
                 for (Diff diffB : diffsBMap.get(diffA.elementId)) {
                     if (isConflicting(diffA, diffB)) {
                         String conflictMessage = String.format(
@@ -48,17 +48,17 @@ public class ConflictDetector {
                 }
             }
         }
-        
+
         if (conflicts.isEmpty()) {
             System.out.println("No conflicts found based on Element ID.");
         }
-        
+
         return conflicts;
     }
 
     /**
-     * ★★★ ここから下を新規追加 ★★★
-     * 【2者間マージ用】baseが空の場合に、2つのダイアグラム間で競合する追加を検出します。
+     * ★★★ ここから下が修正箇所 ★★★
+     * 【2者間マージ用】baseが空の場合に、2つのダイアグラム間で重複追加の可能性を検出します。
      * 類似性マッチングにより、意味的に同じ要素が両方で追加された場合を競合と見なします。
      * @param diagramA バージョンAのダイアグラム
      * @param diagramB バージョンBのダイアグラム
@@ -67,7 +67,7 @@ public class ConflictDetector {
      */
     public List<String> detectConflictsInTwoWayMerge(UmlDiagram diagramA, UmlDiagram diagramB, Matcher matcher) {
         List<String> conflicts = new ArrayList<>();
-        System.out.println("\n--- Running 2-Way Conflict Detector (for empty base) ---");
+        System.out.println("\n--- Running 2-Way Potential Duplicate Detector ---");
 
         // Matcherを使って、AとBの間で意味的に類似するクラスのペアを見つける
         Map<UmlClass, UmlClass> matchedClasses = matcher.match(diagramA, diagramB);
@@ -76,16 +76,17 @@ public class ConflictDetector {
             UmlClass classA = entry.getKey();
             UmlClass classB = entry.getValue();
 
+            // ★ 用語を「競合」から「重複追加の可能性」に変更
             String conflictMessage = String.format(
-                "[CONFLICT] Semantic match found: Class '%s' in A and class '%s' in B are conflicting additions.",
+                "[POTENTIAL DUPLICATE] Matched pair found: Class '%s' in A and class '%s' in B may be duplicate additions.",
                 classA.name, classB.name
             );
             conflicts.add(conflictMessage);
-            System.out.println("Conflict found: " + conflictMessage);
+            System.out.println("Potential duplicate found: " + conflictMessage);
         }
-        
+
         if (conflicts.isEmpty()) {
-            System.out.println("No semantically conflicting additions found.");
+            System.out.println("No potential duplicate additions found.");
         }
 
         return conflicts;
